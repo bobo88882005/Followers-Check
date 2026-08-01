@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Followers Check</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#007aff">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>👥 Followers Check</h1>
+
+<p class="subtitle">
+Scopri chi segui ma non ti segue
+</p>
+
+
+<div class="card">
+
+<label>
+👥 File Followers
+<input 
+id="followersFile"
+type="file"
+accept=".txt,.html,.htm,.json,.zip">
+</label>
+
+
+<label>
+👤 File Seguiti
+<input 
+id="followingFile"
+type="file"
+accept=".txt,.html,.htm,.json,.zip">
+</label>
+
+
+<button id="compareBtn">
+🔍 Confronta
+</button>
+
+</div>
+
+
+
+<div class="stats">
+
+<div>
+<span id="followersCount">0</span>
+<small>Followers</small>
+</div>
+
+
+<div>
+<span id="followingCount">0</span>
+<small>Seguiti</small>
+</div>
+
+
+<div>
+<span id="notFollowCount">0</span>
+<small>Non ti seguono</small>
+</div>
+
+</div>
+
+
+
+<input 
+id="search"
+type="search"
+placeholder="🔎 Cerca utente..."
+>
+
+
+
+<div class="actions">
+
+<button id="sortAZ">
+🔤 A-Z
+</button>
+
+
+<button id="sortZA">
+🔃 Z-A
+</button>
+
+
+<button id="copyBtn">
+📋 Copia
+</button>
+
+
+<button id="downloadBtn">
+💾 TXT
+</button>
+
+</div>
+
+
+
+<div id="resultBox">
+Carica i file e premi Confronta
+</div>
+
+
+
+<button id="clearBtn" class="danger">
+🗑️ Pulisci
+</button>
+
+
+</div>
+
+
+<!-- Libreria per leggere ZIP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script src="app.js"></script>
+
+
+<script>
+
+if ("serviceWorker" in navigator) {
+
+navigator.serviceWorker.register(
+"service-worker.js"
+);
+
+}
+
+</script>
+
+
+</body>
+</html>
