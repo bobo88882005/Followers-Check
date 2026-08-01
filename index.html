@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+
+<title>Followers Check</title>
+
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="manifest" href="manifest.json">
+
+
+<meta name="theme-color" content="#833ab4">
+
+
+<link rel="apple-touch-icon" href="icon-512.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta name="apple-mobile-web-app-title" content="Followers Check">
+
+
+</head>
+
+
+
+<body>
+
+
+<div class="app">
+
+
+
+<header class="hero">
+
+
+<div class="app-icon">
+
+👥
+
+</div>
+
+
+
+<h1>
+Followers Check
+</h1>
+
+
+<p>
+Scopri chi non ti segue
+</p>
+
+
+
+</header>
+
+
+
+
+
+
+<section class="card upload-card">
+
+
+<div class="card-icon">
+📦
+</div>
+
+
+<h2>
+Importa Instagram
+</h2>
+
+
+<p>
+Carica lo ZIP dei tuoi dati Instagram
+</p>
+
+
+
+<label class="upload-button">
+
+
+Seleziona ZIP
+
+
+<input
+id="instagramZip"
+type="file"
+accept=".zip">
+
+
+</label>
+
+
+
+</section>
+
+
+
+
+
+
+
+<button
+id="compareBtn"
+class="main-button">
+
+
+🔍 Analizza ora
+
+
+</button>
+
+
+
+
+
+
+
+<section class="stats">
+
+
+<div class="stat-card">
+
+<span>
+👥
+</span>
+
+<strong id="followersCount">
+0
+</strong>
+
+<small>
+Followers
+</small>
+
+
+</div>
+
+
+
+
+<div class="stat-card">
+
+<span>
+➡️
+</span>
+
+<strong id="followingCount">
+0
+</strong>
+
+<small>
+Seguiti
+</small>
+
+
+</div>
+
+
+
+
+
+<div class="stat-card danger">
+
+<span>
+❌
+</span>
+
+<strong id="notFollowCount">
+0
+</strong>
+
+<small>
+Non ti seguono
+</small>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<section class="card results-card">
+
+
+
+<div class="search-box">
+
+
+🔎
+
+<input
+id="search"
+type="search"
+placeholder="Cerca utente">
+
+
+</div>
+
+
+
+
+
+
+<div class="actions">
+
+
+<button id="sortAZ">
+A-Z
+</button>
+
+
+<button id="sortZA">
+Z-A
+</button>
+
+
+<button id="copyBtn">
+📋 Copia
+</button>
+
+
+<button id="downloadBtn">
+💾 Salva
+</button>
+
+
+</div>
+
+
+
+
+
+<div id="resultBox">
+
+
+Nessun risultato
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+<button
+id="clearBtn"
+class="reset-button">
+
+
+🗑 Nuovo controllo
+
+
+</button>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+
+<script src="app.js"></script>
+
+
+
+<script>
+
+
+if ("serviceWorker" in navigator) {
+
+navigator.serviceWorker.register(
+"service-worker.js"
+);
+
+}
+
+
+</script>
+
+
+
+</body>
+
+</html>
