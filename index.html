@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Followers Check Pro</title>
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="manifest" href="manifest.json">
+
+
+<meta name="theme-color" content="#833ab4">
+
+
+<link rel="apple-touch-icon" href="icon-512.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+<!-- Icone moderne -->
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+
+</head>
+
+
+
+<body>
+
+
+<div class="app">
+
+
+
+<header class="hero">
+
+
+<div class="app-logo">
+
+<i class="fa-solid fa-user-group"></i>
+
+</div>
+
+
+<h1>
+Followers Check
+</h1>
+
+
+<p>
+Scopri chi non ti segue
+</p>
+
+
+</header>
+
+
+
+
+
+
+
+
+<section class="stats">
+
+
+<div class="stat">
+
+<i class="fa-solid fa-users"></i>
+
+<strong id="followersCount">
+0
+</strong>
+
+<span>
+Followers
+</span>
+
+</div>
+
+
+
+
+<div class="stat">
+
+<i class="fa-solid fa-user-plus"></i>
+
+<strong id="followingCount">
+0
+</strong>
+
+<span>
+Seguiti
+</span>
+
+</div>
+
+
+
+
+
+<div class="stat danger">
+
+<i class="fa-solid fa-user-minus"></i>
+
+<strong id="notFollowCount">
+0
+</strong>
+
+<span>
+Non ti seguono
+</span>
+
+</div>
+
+
+
+
+
+<div class="stat pending">
+
+<i class="fa-solid fa-clock"></i>
+
+<strong id="pendingCount">
+0
+</strong>
+
+<span>
+Pending
+</span>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<section class="card upload-card">
+
+
+<i class="fa-solid fa-file-zipper big-icon"></i>
+
+
+<h2>
+Importa archivio Instagram
+</h2>
+
+
+<p>
+Carica direttamente lo ZIP scaricato da Instagram
+</p>
+
+
+
+<label class="upload-button">
+
+
+<i class="fa-solid fa-cloud-arrow-up"></i>
+
+Scegli ZIP
+
+
+
+<input
+type="file"
+id="instagramZip"
+accept=".zip">
+
+
+</label>
+
+
+
+</section>
+
+
+
+
+
+
+
+<button
+id="compareBtn"
+class="main-button">
+
+
+<i class="fa-solid fa-magnifying-glass"></i>
+
+Analizza archivio
+
+
+</button>
+
+
+
+
+
+
+
+
+<section class="card results-card">
+
+
+<div class="tabs">
+
+
+<button
+class="tab active"
+data-tab="notfollow">
+
+<i class="fa-solid fa-user-minus"></i>
+
+Non ti seguono
+
+</button>
+
+
+
+<button
+class="tab"
+data-tab="pending">
+
+<i class="fa-solid fa-clock"></i>
+
+Pending
+
+</button>
+
+
+
+<button
+class="tab"
+data-tab="fans">
+
+<i class="fa-solid fa-user-check"></i>
+
+Ti seguono
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+<div class="search">
+
+
+<i class="fa-solid fa-search"></i>
+
+
+<input
+id="search"
+placeholder="Cerca utente">
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="actions">
+
+
+<button id="sortAZ">
+
+A-Z
+
+</button>
+
+
+<button id="sortZA">
+
+Z-A
+
+</button>
+
+
+<button id="copyBtn">
+
+<i class="fa-solid fa-copy"></i>
+
+Copia
+
+</button>
+
+
+<button id="downloadBtn">
+
+<i class="fa-solid fa-download"></i>
+
+Salva
+
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+<div id="resultBox">
+
+
+Nessun risultato
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+<button
+id="clearBtn"
+class="reset-button">
+
+
+<i class="fa-solid fa-trash"></i>
+
+Nuovo controllo
+
+
+</button>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+
+<script src="app.js"></script>
+
+
+
+<script>
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register(
+"service-worker.js"
+);
+
+}
+
+</script>
+
+
+
+</body>
+
+</html>
