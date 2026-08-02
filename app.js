@@ -60,54 +60,119 @@ function cleanUsername(value) {
 
 
 
-
-
-
 function extractHTML(html) {
-
 
     const users = new Set();
 
-
-    const parser =
-        new DOMParser();
-
-
     const doc =
-        parser.parseFromString(
+        new DOMParser()
+        .parseFromString(
             html,
             "text/html"
         );
 
 
-
-    /*
-      Instagram export recente:
-      <a href="https://www.instagram.com/_u/nomeutente">
-    */
-
+    // =================================
+    // 1) Link Instagram
+    // =================================
 
     doc.querySelectorAll("a")
     .forEach(link => {
 
 
         const href =
-            link.getAttribute("href");
+            link.getAttribute("href") || "";
+
+        const text =
+            link.textContent || "";
 
 
-        if (!href)
-            return;
+        [
+            href,
+            text
+        ]
+        .forEach(value => {
 
 
-
-        const match =
-            href.match(
-                /instagram\.com\/_u\/([^\/?]+)/i
+            const match =
+            value.match(
+                /instagram\.com\/(?:_u\/)?([^\/\?\s]+)/i
             );
 
 
+            if(match){
 
-        if (match) {
+
+                const username =
+                    cleanUsername(
+                        match[1]
+                    );
+
+
+                if(username)
+                    users.add(username);
+
+
+            }
+
+
+        });
+
+
+    });
+
+
+
+
+    // =================================
+    // 2) Tag h2 (formato vecchio)
+    // =================================
+
+
+    doc.querySelectorAll("h2")
+    .forEach(element => {
+
+
+        const username =
+            cleanUsername(
+                element.textContent
+            );
+
+
+        if(username)
+            users.add(username);
+
+
+    });
+
+
+
+
+
+
+    // =================================
+    // 3) JSON incorporato nell'HTML
+    // =================================
+
+
+    const scripts =
+        doc.querySelectorAll("script");
+
+
+    scripts.forEach(script => {
+
+
+        const content =
+            script.textContent;
+
+
+        const matches =
+            content.matchAll(
+                /"value"\s*:\s*"([^"]+)"/g
+            );
+
+
+        for(const match of matches){
 
 
             const username =
@@ -116,7 +181,7 @@ function extractHTML(html) {
                 );
 
 
-            if (username)
+            if(username)
                 users.add(username);
 
 
@@ -128,36 +193,11 @@ function extractHTML(html) {
 
 
 
-    /*
-       Backup per formati diversi
-    */
 
 
-    if (users.size === 0) {
-
-
-        doc.querySelectorAll("h2")
-        .forEach(title => {
-
-
-            const username =
-                cleanUsername(
-                    title.textContent
-                );
-
-
-            if(username)
-                users.add(username);
-
-
-        });
-
-
-    }
-
-
-
-    return [...users];
+    return [
+        ...users
+    ];
 
 }
 
