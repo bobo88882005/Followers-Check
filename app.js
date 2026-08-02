@@ -6,18 +6,16 @@ let notFollowing = [];
 let fans = [];
 
 let currentResults = [];
-let currentTab = "notfollow";
+
 
 
 const zipInput = document.getElementById("instagramZip");
 const compareBtn = document.getElementById("compareBtn");
 
-
 const followersCount = document.getElementById("followersCount");
 const followingCount = document.getElementById("followingCount");
 const notFollowCount = document.getElementById("notFollowCount");
 const pendingCount = document.getElementById("pendingCount");
-
 
 const resultBox = document.getElementById("resultBox");
 const search = document.getElementById("search");
@@ -26,26 +24,36 @@ const search = document.getElementById("search");
 
 
 
-function cleanUsername(name){
 
-    if(!name) return null;
+function cleanUsername(value) {
 
-    name = name
-    .trim()
-    .replace("@","")
-    .toLowerCase();
+    if (!value)
+        return null;
 
 
-    if(
-        name.length < 2 ||
-        name.includes(" ") ||
-        name.includes("instagram")
-    ){
+    let user = value
+        .trim()
+        .toLowerCase();
+
+
+    user = user
+        .replace("@", "")
+        .replace("https://www.instagram.com/_u/", "")
+        .replace("https://www.instagram.com/", "")
+        .replace("/", "");
+
+
+
+    if (
+        user.length < 2 ||
+        user.includes("instagram") ||
+        user.includes(" ")
+    ) {
         return null;
     }
 
 
-    return name;
+    return user;
 
 }
 
@@ -55,71 +63,62 @@ function cleanUsername(name){
 
 
 
+function extractHTML(html) {
 
-function extractHTML(html){
 
-    let users=[];
+    const users = new Set();
+
+
+    const parser =
+        new DOMParser();
 
 
     const doc =
-    new DOMParser()
-    .parseFromString(
-        html,
-        "text/html"
-    );
-
-
-
-    // Instagram export attuale
-
-    doc.querySelectorAll("h2")
-    .forEach(el=>{
-
-        let user =
-        cleanUsername(
-            el.textContent
+        parser.parseFromString(
+            html,
+            "text/html"
         );
 
 
-        if(user)
-            users.push(user);
 
-    });
+    /*
+      Instagram export recente:
+      <a href="https://www.instagram.com/_u/nomeutente">
+    */
 
-
-
-
-    // Backup tramite link
 
     doc.querySelectorAll("a")
-    .forEach(a=>{
+    .forEach(link => {
 
 
-        let href =
-        a.getAttribute("href");
+        const href =
+            link.getAttribute("href");
 
 
-        if(href){
+        if (!href)
+            return;
 
 
-            let match =
+
+        const match =
             href.match(
-            /instagram\.com\/_u\/([^\/?]+)/i
+                /instagram\.com\/_u\/([^\/?]+)/i
             );
 
 
-            if(match){
 
-                let user =
+        if (match) {
+
+
+            const username =
                 cleanUsername(
                     match[1]
                 );
 
 
-                if(user)
-                    users.push(user);
+            if (username)
+                users.add(username);
 
-            }
 
         }
 
@@ -128,80 +127,37 @@ function extractHTML(html){
 
 
 
-    return [
-        ...new Set(users)
-    ];
 
-}
-
+    /*
+       Backup per formati diversi
+    */
 
 
+    if (users.size === 0) {
 
 
+        doc.querySelectorAll("h2")
+        .forEach(title => {
 
 
+            const username =
+                cleanUsername(
+                    title.textContent
+                );
 
 
-function extractJSON(json){
-
-    let users=[];
-
-
-    function scan(obj){
+            if(username)
+                users.add(username);
 
 
-        if(!obj)
-            return;
+        });
 
-
-        if(Array.isArray(obj)){
-
-            obj.forEach(scan);
-
-        }
-        else if(typeof obj==="object"){
-
-
-            if(obj.string_list_data){
-
-
-                obj.string_list_data
-                .forEach(item=>{
-
-
-                    if(item.value){
-
-                        let user =
-                        cleanUsername(
-                            item.value
-                        );
-
-
-                        if(user)
-                            users.push(user);
-
-                    }
-
-
-                });
-
-            }
-
-
-            Object.values(obj)
-            .forEach(scan);
-
-        }
 
     }
 
 
-    scan(json);
 
-
-    return [
-        ...new Set(users)
-    ];
+    return [...users];
 
 }
 
@@ -212,23 +168,21 @@ function extractJSON(json){
 
 
 
-
-// CORRETTA: controlla solo il nome file
-
-function getType(filename){
+function getFileType(path) {
 
 
-    let fileName =
-    filename
-    .toLowerCase()
-    .split("/")
-    .pop();
+    const file =
+        path
+        .toLowerCase()
+        .split("/")
+        .pop();
 
 
 
-    if(
-        fileName.startsWith("followers_")
-    ){
+    if (
+        file.startsWith("followers_") &&
+        file.endsWith(".html")
+    ) {
 
         return "followers";
 
@@ -236,9 +190,9 @@ function getType(filename){
 
 
 
-    if(
-        fileName === "following.html"
-    ){
+    if (
+        file === "following.html"
+    ) {
 
         return "following";
 
@@ -246,10 +200,11 @@ function getType(filename){
 
 
 
-    if(
-        fileName.includes("pending") ||
-        fileName.includes("request")
-    ){
+    if (
+        file.includes("pending") ||
+        file.includes("follow_requests") ||
+        file.includes("requests")
+    ) {
 
         return "pending";
 
@@ -268,91 +223,69 @@ function getType(filename){
 
 
 
+async function readInstagramZip(file) {
 
-async function readZip(file){
 
-
-    followers=[];
-    following=[];
-    pending=[];
+    followers = [];
+    following = [];
+    pending = [];
 
 
 
     const zip =
-    await JSZip.loadAsync(file);
+        await JSZip.loadAsync(file);
 
 
 
-    for(
+    for (
         const filename of Object.keys(zip.files)
-    ){
+    ) {
 
 
 
         const type =
-        getType(filename);
+            getFileType(filename);
 
 
 
-        if(!type)
+        if (!type)
             continue;
 
 
 
+
         const content =
-        await zip.files[filename]
-        .async("string");
+            await zip.files[filename]
+            .async("string");
 
 
 
-        let users=[];
-
-
-
-        if(
-            filename.endsWith(".json")
-        ){
-
-
-            users =
-            extractJSON(
-                JSON.parse(content)
-            );
-
-
-        }
-        else{
-
-
-            users =
+        const users =
             extractHTML(content);
 
-        }
+
+
+        console.log(
+            filename,
+            type,
+            users.length
+        );
 
 
 
-
-        if(type==="followers"){
-
+        if(type === "followers")
             followers.push(...users);
 
-        }
 
 
-
-        if(type==="following"){
-
+        if(type === "following")
             following.push(...users);
 
-        }
 
 
-
-        if(type==="pending"){
-
+        if(type === "pending")
             pending.push(...users);
 
-        }
 
 
     }
@@ -360,39 +293,51 @@ async function readZip(file){
 
 
     followers =
-    [...new Set(followers)];
+        [...new Set(followers)];
 
 
     following =
-    [...new Set(following)];
+        [...new Set(following)];
 
 
     pending =
-    [...new Set(pending)];
+        [...new Set(pending)];
+
+
+
+    console.log(
+        "RISULTATI FINALI",
+        {
+            followers:
+            followers.length,
+
+            following:
+            following.length,
+
+            pending:
+            pending.length
+        }
+    );
 
 
 }
 
+// ===============================
+// ANALISI ZIP
+// ===============================
 
 
-
-
-
-
-
-
-compareBtn.onclick = async ()=>{
+compareBtn.onclick = async () => {
 
 
     const file =
-    zipInput.files[0];
-
+        zipInput.files[0];
 
 
     if(!file){
 
         alert(
-        "Seleziona lo ZIP Instagram"
+            "Seleziona lo ZIP Instagram"
         );
 
         return;
@@ -402,65 +347,68 @@ compareBtn.onclick = async ()=>{
 
 
     resultBox.innerHTML =
-    "Analisi archivio...";
+        "⏳ Analisi archivio...";
 
 
 
-    await readZip(file);
+    await readInstagramZip(file);
+
 
 
 
     followersCount.textContent =
-    followers.length;
+        followers.length;
 
 
     followingCount.textContent =
-    following.length;
+        following.length;
 
 
     pendingCount.textContent =
-    pending.length;
-
+        pending.length;
 
 
 
 
     const followerSet =
-    new Set(followers);
+        new Set(followers);
 
 
 
     notFollowing =
-    following.filter(
-        u =>
-        !followerSet.has(u)
-    );
-
-
+        following.filter(
+            user =>
+            !followerSet.has(user)
+        );
 
 
 
     const followingSet =
-    new Set(following);
+        new Set(following);
 
 
 
     fans =
-    followers.filter(
-        u =>
-        !followingSet.has(u)
-    );
-
-
+        followers.filter(
+            user =>
+            !followingSet.has(user)
+        );
 
 
 
     notFollowCount.textContent =
-    notFollowing.length;
+        notFollowing.length;
 
 
 
-    showTab("notfollow");
+    currentResults =
+        notFollowing;
+
+
+
+    renderResults(
+        currentResults
+    );
 
 
 };
@@ -472,124 +420,71 @@ compareBtn.onclick = async ()=>{
 
 
 
+// ===============================
+// TAB
+// ===============================
 
-function showTab(tab){
 
+document
+.querySelectorAll(".tab")
+.forEach(button => {
 
-    currentTab = tab;
 
-
-    if(tab==="notfollow")
-        currentResults = notFollowing;
-
-
-    if(tab==="pending")
-        currentResults = pending;
-
-
-    if(tab==="fans")
-        currentResults = fans;
-
-
-
-    render(currentResults);
-
-}
-
-
-
-
-
-
-
-
-
-function render(list){
-
-
-    resultBox.innerHTML="";
-
-
-
-    if(list.length===0){
-
-        resultBox.innerHTML =
-        "Nessun risultato";
-
-        return;
-
-    }
-
-
-
-
-    list.forEach(user=>{
-
-
-        let div =
-        document.createElement("div");
-
-
-        div.className="user";
-
-
-
-        let a =
-        document.createElement("a");
-
-
-        a.href =
-        "https://www.instagram.com/"
-        + user
-        + "/";
-
-
-        a.target="_blank";
-
-
-        a.textContent =
-        "@" + user;
-
-
-
-        div.appendChild(a);
-
-
-        resultBox.appendChild(div);
-
-
-
-    });
-
-
-}
-
-
-
-
-
-
-
-
-document.querySelectorAll(".tab")
-.forEach(tab=>{
-
-
-    tab.onclick=()=>{
+    button.onclick = () => {
 
 
         document
         .querySelectorAll(".tab")
-        .forEach(t=>
-            t.classList.remove("active")
+        .forEach(tab => {
+
+            tab.classList.remove(
+                "active"
+            );
+
+        });
+
+
+
+        button.classList.add(
+            "active"
         );
 
 
-        tab.classList.add("active");
+
+        const tab =
+            button.dataset.tab;
 
 
-        showTab(
-            tab.dataset.tab
+
+        if(tab === "notfollow"){
+
+            currentResults =
+                notFollowing;
+
+        }
+
+
+
+        if(tab === "pending"){
+
+            currentResults =
+                pending;
+
+        }
+
+
+
+        if(tab === "fans"){
+
+            currentResults =
+                fans;
+
+        }
+
+
+
+        renderResults(
+            currentResults
         );
 
 
@@ -606,22 +501,119 @@ document.querySelectorAll(".tab")
 
 
 
-search.oninput=()=>{
+// ===============================
+// VISUALIZZAZIONE UTENTI
+// ===============================
 
 
-    let q =
-    search.value
-    .toLowerCase();
+function renderResults(list){
+
+
+    resultBox.innerHTML = "";
 
 
 
-    render(
+    if(!list || list.length === 0){
+
+
+        resultBox.innerHTML =
+            "Nessun risultato";
+
+
+        return;
+
+    }
+
+
+
+    list.forEach(user => {
+
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "user";
+
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href =
+            "https://www.instagram.com/"
+            + user
+            + "/";
+
+
+
+        link.target =
+            "_blank";
+
+
+
+        link.innerHTML =
+            "@" + user
+            +
+            " ↗";
+
+
+
+        row.appendChild(
+            link
+        );
+
+
+
+        resultBox.appendChild(
+            row
+        );
+
+
+    });
+
+
+}
+
+
+
+
+
+
+
+
+
+// ===============================
+// RICERCA
+// ===============================
+
+
+search.oninput = () => {
+
+
+    const text =
+        search.value
+        .toLowerCase();
+
+
+
+    const filtered =
         currentResults.filter(
-            u =>
-            u.includes(q)
-        )
-    );
+            user =>
+            user.includes(text)
+        );
 
+
+
+    renderResults(
+        filtered
+    );
 
 };
 
@@ -632,22 +624,24 @@ search.oninput=()=>{
 
 
 
-document.getElementById("sortAZ").onclick=()=>{
+
+// ===============================
+// ORDINAMENTO
+// ===============================
+
+
+document
+.getElementById("sortAZ")
+.onclick = () => {
+
 
     currentResults.sort();
 
-    render(currentResults);
 
-};
+    renderResults(
+        currentResults
+    );
 
-
-
-
-document.getElementById("sortZA").onclick=()=>{
-
-    currentResults.sort().reverse();
-
-    render(currentResults);
 
 };
 
@@ -655,14 +649,52 @@ document.getElementById("sortZA").onclick=()=>{
 
 
 
-document.getElementById("copyBtn").onclick=()=>{
+
+document
+.getElementById("sortZA")
+.onclick = () => {
+
+
+    currentResults.sort()
+    .reverse();
+
+
+    renderResults(
+        currentResults
+    );
+
+
+};
+
+
+
+
+
+
+
+
+
+// ===============================
+// COPIA
+// ===============================
+
+
+document
+.getElementById("copyBtn")
+.onclick = () => {
 
 
     navigator.clipboard.writeText(
+
         currentResults
-        .map(u=>"@"+u)
+        .map(
+            user =>
+            "@" + user
+        )
         .join("\n")
+
     );
+
 
 };
 
@@ -670,34 +702,111 @@ document.getElementById("copyBtn").onclick=()=>{
 
 
 
-document.getElementById("downloadBtn").onclick=()=>{
 
 
-    let blob =
-    new Blob(
-        [
-            currentResults
-            .map(u=>"@"+u)
-            .join("\n")
-        ],
-        {
-            type:"text/plain"
-        }
-    );
 
 
-    let a =
-    document.createElement("a");
+// ===============================
+// DOWNLOAD
+// ===============================
 
 
-    a.href =
-    URL.createObjectURL(blob);
+document
+.getElementById("downloadBtn")
+.onclick = () => {
 
 
-    a.download =
-    "instagram_lista.txt";
+    const file =
+        new Blob(
+
+            [
+                currentResults
+                .map(
+                    user =>
+                    "@" + user
+                )
+                .join("\n")
+            ],
+
+            {
+                type:
+                "text/plain"
+            }
+
+        );
 
 
-    a.click();
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+
+    link.href =
+        URL.createObjectURL(
+            file
+        );
+
+
+
+    link.download =
+        "instagram_risultati.txt";
+
+
+
+    link.click();
+
 
 };
+
+
+
+
+
+
+
+
+// ===============================
+// RESET
+// ===============================
+
+
+const clearBtn =
+document.getElementById(
+    "clearBtn"
+);
+
+
+
+if(clearBtn){
+
+
+clearBtn.onclick = () => {
+
+
+    followers = [];
+    following = [];
+    pending = [];
+
+    notFollowing = [];
+    fans = [];
+
+    currentResults = [];
+
+
+
+    followersCount.textContent = 0;
+    followingCount.textContent = 0;
+    notFollowCount.textContent = 0;
+    pendingCount.textContent = 0;
+
+
+
+    resultBox.innerHTML =
+        "Nessun risultato";
+
+
+};
+
