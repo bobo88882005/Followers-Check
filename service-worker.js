@@ -1,4 +1,4 @@
-const CACHE_NAME = "followers-check-pro-v3";
+const CACHE_NAME = "followers-check-pro-v5";
 
 const FILES_TO_CACHE = [
     "./",
